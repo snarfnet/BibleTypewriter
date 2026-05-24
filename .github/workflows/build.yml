@@ -26,6 +26,9 @@ jobs:
     - name: Install XcodeGen
       run: brew install xcodegen
 
+    - name: Install PyJWT
+      run: pip3 install --break-system-packages PyJWT requests
+
     - name: Set build number
       run: |
         BUILD_NUM=$(( ${{ github.run_number }} + 10 ))
@@ -42,21 +45,6 @@ jobs:
         echo "Info.plist after patch:"
         grep -A1 CFBundleVersion BibleTypewriter/Info.plist
 
-    - name: Import Distribution Certificate
-      env:
-        CERT_BASE64: ${{ secrets.DIST_CERT_BASE64 }}
-        CERT_PASSWORD: ${{ secrets.DIST_CERT_PASSWORD }}
-        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      run: |
-        security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-        security default-keychain -s build.keychain
-        security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-        security set-keychain-settings -t 3600 -u build.keychain
-        echo "$CERT_BASE64" | base64 -D > cert.p12
-        security import cert.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-        rm cert.p12
-
     - name: Set up ASC API Key
       env:
         ASC_API_KEY_CONTENT: ${{ secrets.ASC_API_KEY_CONTENT }}
@@ -64,6 +52,20 @@ jobs:
         mkdir -p ~/.appstoreconnect/private_keys
         echo "$ASC_API_KEY_CONTENT" | base64 -D > ~/.appstoreconnect/private_keys/AuthKey_WDXGY9WX55.p8
         cp ~/.appstoreconnect/private_keys/AuthKey_WDXGY9WX55.p8 /tmp/asc_key.p8
+
+    - name: Create Keychain and Distribution Certificate
+      env:
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        ASC_KEY_ID: WDXGY9WX55
+        ASC_ISSUER_ID: 2be0734f-943a-4d61-9dc9-5d9045c46fec
+        ASC_P8_PATH: /tmp/asc_key.p8
+        REVOKE_EXISTING_DISTRIBUTION_CERTS: "1"
+      run: |
+        security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+        security set-keychain-settings -t 3600 -u build.keychain
+        python3 scripts/create_distribution_certificate.py
 
     - name: Build Archive
       run: |
@@ -89,9 +91,6 @@ jobs:
           -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_WDXGY9WX55.p8 \
           -authenticationKeyID WDXGY9WX55 \
           -authenticationKeyIssuerID 2be0734f-943a-4d61-9dc9-5d9045c46fec
-
-    - name: Install PyJWT
-      run: pip3 install --break-system-packages PyJWT requests
 
     - name: Submit for Review
       env:
