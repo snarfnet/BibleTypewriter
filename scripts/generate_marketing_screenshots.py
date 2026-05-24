@@ -34,44 +34,44 @@ SCENES = [
     Scene(
         "genesis",
         "chapter_bg_001.jpg",
-        "Genesis",
-        "1",
-        "WEB",
-        "A calm beginning",
+        "創世記",
+        "1章",
+        "文語訳",
+        "天地創造",
         [
-            ("1", "In the beginning God created the heavens and the earth."),
-            ("2", "Now the earth was formless and empty. Darkness was on the surface of the deep."),
-            ("3", "God said, Let there be light, and there was light."),
+            ("1", "元始に神天地を創造りたまへり。"),
+            ("2", "地は定形なく曠空くして黑暗淵の面にあり。神の靈水の面を覆たりき。"),
+            ("3", "神光あれと言たまひければ光ありき。"),
         ],
-        ("WEB", "Genesis", "1"),
+        ("文語訳", "創世記", "1章"),
     ),
     Scene(
         "psalms",
         "chapter_bg_020.jpg",
-        "Psalms",
-        "23",
-        "KJV",
-        "Quiet words for prayer",
+        "詩篇",
+        "23篇",
+        "文語訳",
+        "静かな祈り",
         [
-            ("1", "The LORD is my shepherd; I shall not want."),
-            ("2", "He maketh me to lie down in green pastures: he leadeth me beside the still waters."),
-            ("3", "He restoreth my soul: he leadeth me in the paths of righteousness for his name's sake."),
+            ("1", "ヱホバはわが牧者なり。われ乏しきことあらじ。"),
+            ("2", "ヱホバはわれをみどりの野にふさせ、いこひの水濱にともなひたまふ。"),
+            ("3", "ヱホバはわが靈魂をいかし、名のゆゑをもてわれを正しき路にみちびきたまふ。"),
         ],
-        ("KJV", "Psalms", "23"),
+        ("文語訳", "詩篇", "23篇"),
     ),
     Scene(
         "gospels",
         "chapter_bg_047.jpg",
-        "John",
-        "1",
-        "WEB",
-        "WEB / KJV only",
+        "ヨハネ伝",
+        "1章",
+        "文語訳",
+        "文語訳・WEB・KJV",
         [
-            ("1", "In the beginning was the Word, and the Word was with God, and the Word was God."),
-            ("2", "The same was in the beginning with God."),
-            ("3", "All things were made through him. Without him, nothing was made that has been made."),
+            ("1", "太初に言あり、言は神と偕にあり、言は神なりき。"),
+            ("2", "この言は太初に神とともに在り。"),
+            ("3", "萬の物これに由りて成り、成りたる物に一つとして之によらで成りたるはなし。"),
         ],
-        ("WEB", "John", "1"),
+        ("文語訳", "ヨハネ伝", "1章"),
     ),
 ]
 
@@ -112,15 +112,15 @@ def rounded_rect(draw: ImageDraw.ImageDraw, box, fill, outline=None, radius=0, w
 def draw_wrapped(draw: ImageDraw.ImageDraw, text: str, xy: tuple[int, int], max_width: int, font_obj, fill) -> int:
     x, y = xy
     line = ""
-    for word in text.split(" "):
-        candidate = f"{line} {word}".strip()
+    for char in text:
+        candidate = line + char
         if draw.textlength(candidate, font=font_obj) <= max_width:
             line = candidate
             continue
         if line:
             draw.text((x, y), line, font=font_obj, fill=fill)
             y += int(font_obj.size * 1.38)
-        line = word
+        line = char
     if line:
         draw.text((x, y), line, font=font_obj, fill=fill)
         y += int(font_obj.size * 1.38)
